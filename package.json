@@ -15,8 +15,8 @@
   "scripts": {
     "format:check": "prettier --loglevel warn --check \"**/*.{js,css,md,json}\"",
     "format:fix": "prettier --loglevel warn --write \"**/*.{js,css,md,json}\"",
-    "lint:check": "eslint . --cache",
-    "lint:fix": "eslint . --cache --fix",
+    "lint:check": "eslint --cache",
+    "lint:fix": "eslint --cache --fix",
     "pretest": "npm run lint:check",
     "test": "echo 'Oh, noes!' && exit 1"
   },
@@ -25,6 +25,18 @@
   "devDependencies": {
     "eslint": "^7.4.0",
     "eslint-config-prettier": "^6.11.0",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
     "prettier": "^2.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.{js,css,md,json}": "prettier --write",
+    ".prettierrc": "prettier --write"
   }
 }
