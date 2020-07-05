@@ -1,29 +1,60 @@
+// The backlog is an array with dedupe rules
+const createBacklog = (initial) => {
+  const backlogArray = initial ? [initial] : []
+  const backlogSet = new Set(backlogArray)
+  const add = (items) => {
+    if (!Array.isArray(items)) {
+      items = [items]
+    }
+    items.forEach((item) => {
+      if (!backlogSet.has(item)) {
+        backlogArray.push(item)
+        backlogSet.add(item)
+      }
+    })
+  }
+  const next = () => {
+    const item = backlogArray.shift() // shift: breadth-first, pop: depth-first
+    backlogSet.delete(item)
+    return item
+  }
+  const size = () => {
+    return backlogArray.length
+  }
+  return { add, next, size }
+}
+
 const createCrawler = ({ maxVisits = null, visitorFn }) => {
-  const visited = new Set()
+  const visitedNodes = new Set()
   const crawl = async (initial) => {
-    const nodeBacklog = [initial]
-    while (nodeBacklog.length > 0) {
-      const node = nodeBacklog.shift() // shift: breadth-first, pop: depth-first
-      if (visited.has(node)) {
-        continue // we've been here already
+    const visitBacklog = createBacklog(initial)
+    while (visitBacklog.size() > 0) {
+      const node = visitBacklog.next()
+      if (visitedNodes.has(node)) {
+        continue // Sanity check: we've been here already
       }
       // we could improve performance calling more visitors concurrently
-      const nextNodes = await visitorFn(visited.size, node)
-      visited.add(node)
+      const nextNodes = await visitorFn(visitedNodes.size, node)
+      visitedNodes.add(node)
       if (nextNodes === null) {
         break
       }
       if (maxVisits !== null) {
-        const pendingVisits = maxVisits - visited.size - nodeBacklog.length
-        pendingVisits > 0 &&
-          nodeBacklog.push(...nextNodes.slice(0, pendingVisits))
+        let visitSlotCount = maxVisits - visitedNodes.size - visitBacklog.size()
+        while (visitSlotCount > 0 && nextNodes.length > 0) {
+          const nextNode = nextNodes.shift()
+          if (!visitedNodes.has(nextNode)) {
+            visitBacklog.add(nextNode)
+          }
+          visitSlotCount = maxVisits - visitedNodes.size - visitBacklog.size()
+        }
       } else {
-        nodeBacklog.push(...nextNodes)
+        visitBacklog.add(nextNodes)
       }
     }
   }
   const getVisitCount = () => {
-    return visited.size
+    return visitedNodes.size
   }
   return {
     crawl,
@@ -31,4 +62,4 @@ const createCrawler = ({ maxVisits = null, visitorFn }) => {
   }
 }
 
-module.exports = createCrawler
+module.exports = { createCrawler, createBacklog }

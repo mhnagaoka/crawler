@@ -9,7 +9,7 @@ process.on('unhandledRejection', (error) => {
 
 const meow = require('meow')
 const { MongoClient } = require('mongodb')
-const createCrawler = require('../src/crawler')
+const { createCrawler } = require('../src/crawler')
 const createPageVisitor = require('../src/page-visitor')
 
 const cli = meow(
