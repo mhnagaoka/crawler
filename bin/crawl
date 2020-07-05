@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+'use strict'
+
+const meow = require('meow')
+const createCrawler = require('../src/crawler')
+const createPageVisitor = require('../src/page-visitor')
+
+const cli = meow(
+  `
+	Usage
+	  $ crawl <url>
+
+  Options
+    --help            show usage information
+    --version         prints the version number
+	  --maxVisits, -mv  maximum number of pages to crawl (default is 10)
+
+	Examples
+	  $ crawl https://www.crawler-test.com/
+	  $ crawl --maxVisits 10 https://www.crawler-test.com/
+`,
+  {
+    flags: {
+      maxVisits: {
+        type: 'number',
+        alias: 'mv',
+        default: 10,
+      },
+    },
+  }
+)
+
+if (cli.input.length < 1) {
+  cli.showHelp()
+}
+
+cli.input.forEach((initialUrl) => {
+  const maxVisits = cli.flags.maxVisits
+  const visitorFn = createPageVisitor()
+  const crawler = createCrawler({ maxVisits, visitorFn })
+  crawler.crawl(initialUrl)
+})

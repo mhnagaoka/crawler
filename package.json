@@ -13,8 +13,8 @@
     "node": ">=12"
   },
   "scripts": {
-    "cli": "node src/cli",
-    "cli:debug": "node --inspect-brk src/cli",
+    "cli": "node bin/crawl",
+    "cli:debug": "node --inspect-brk bin/crawl",
     "format:check": "prettier --loglevel warn --check \"**/*.{js,css,md,json}\"",
     "format:fix": "prettier --loglevel warn --write \"**/*.{js,css,md,json}\"",
     "lint:check": "eslint --cache",
@@ -27,7 +27,8 @@
   "keywords": [],
   "dependencies": {
     "axios": "^0.19.2",
-    "cheerio": "^1.0.0-rc.3"
+    "cheerio": "^1.0.0-rc.3",
+    "meow": "^7.0.1"
   },
   "devDependencies": {
     "eslint": "^7.4.0",
