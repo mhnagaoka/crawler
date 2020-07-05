@@ -1,4 +1,4 @@
-const createCrawler = (visitorFn) => {
+const createCrawler = ({ maxVisits = null, visitorFn }) => {
   let visitCount = 0
   const crawl = async (initial) => {
     const nodeBacklog = [initial]
@@ -10,7 +10,13 @@ const createCrawler = (visitorFn) => {
       if (nextNodes === null) {
         break
       }
-      nodeBacklog.push(...nextNodes)
+      if (maxVisits !== null) {
+        const pendingVisits = maxVisits - visitCount - nodeBacklog.length
+        pendingVisits > 0 &&
+          nodeBacklog.push(...nextNodes.slice(0, pendingVisits))
+      } else {
+        nodeBacklog.push(...nextNodes)
+      }
     }
   }
   const getVisitCount = () => {

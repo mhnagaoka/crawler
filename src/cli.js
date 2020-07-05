@@ -5,6 +5,6 @@ console.log(process.argv)
 
 const initialUrl = process.argv[2]
 const maxVisits = Number(process.argv[3])
-const pageVisitor = createPageVisitor({ maxVisits })
-const crawler = createCrawler(pageVisitor)
+const visitorFn = createPageVisitor()
+const crawler = createCrawler({ maxVisits, visitorFn })
 crawler.crawl(initialUrl)

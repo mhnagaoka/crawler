@@ -3,7 +3,7 @@ const url = require('url')
 const { URL } = url
 const scrapeLinks = require('./scraper')
 
-const createPageVisitor = ({ maxVisits }) => {
+const createPageVisitor = () => {
   const visited = new Set()
   const pageVisitor = async (count, node) => {
     const current = url.format(new URL(node), { fragment: false })
@@ -28,15 +28,9 @@ const createPageVisitor = ({ maxVisits }) => {
       console.log(
         `count=${count} url=${current} status=${response.status} length=${response.headers['content-length']} totalLinks=${links.length} filteredLinks=${absoluteLinks.length}`
       )
-      if (count >= maxVisits - 1) {
-        return null
-      }
       return absoluteLinks
     } catch (err) {
       console.error(`Error visiting ${current}: ${err.message}`)
-      if (count >= maxVisits - 1) {
-        return null
-      }
       return []
     }
   }

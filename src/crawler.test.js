@@ -15,7 +15,12 @@ beforeEach(() => {
           },
           {
             name: 'e',
-            children: [],
+            children: [
+              {
+                name: 'g',
+                children: [],
+              },
+            ],
           },
         ],
       },
@@ -39,10 +44,23 @@ it('Does breadth-first crawl', async () => {
     result.push(node.name)
     return node.children
   }
-  const crawler = createCrawler(visitorFn)
+  const crawler = createCrawler({ visitorFn })
   await crawler.crawl(tree)
-  expect(result).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
-  expect(crawler.getVisitCount()).toEqual(6)
+  expect(result).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+  expect(crawler.getVisitCount()).toEqual(7)
+})
+
+it('Limits the number of visits (maxVisits)', async () => {
+  expect.assertions(2)
+  const result = []
+  const visitorFn = async (count, node) => {
+    result.push(node.name)
+    return node.children
+  }
+  const crawler = createCrawler({ maxVisits: 3, visitorFn })
+  await crawler.crawl(tree)
+  expect(result).toEqual(['a', 'b', 'c'])
+  expect(crawler.getVisitCount()).toEqual(3)
 })
 
 it('Interrupts crawling if visitorFn returns null', async () => {
@@ -52,13 +70,13 @@ it('Interrupts crawling if visitorFn returns null', async () => {
     result.push(node.name)
     return null // interrupts after visiting the first node
   }
-  const crawler = createCrawler(visitorFn)
+  const crawler = createCrawler({ visitorFn })
   await crawler.crawl(tree)
   expect(result).toEqual(['a'])
   expect(crawler.getVisitCount()).toEqual(1)
 })
 
-describe('Cyclic graph', () => {
+describe('Cyclic graph (beware of infinite loops!)', () => {
   beforeEach(() => {
     tree = {
       name: 'a',
@@ -72,7 +90,12 @@ describe('Cyclic graph', () => {
             },
             {
               name: 'e',
-              children: [],
+              children: [
+                {
+                  name: 'g',
+                  children: [],
+                },
+              ],
             },
           ],
         },
@@ -91,23 +114,20 @@ describe('Cyclic graph', () => {
     tree.children[1].children[0].children = [tree]
   })
 
-  it('visitorFn should limit the number of visits', async () => {
+  it('Can avoid infinite loops by limiting the number of visits', async () => {
     expect.assertions(2)
     const result = []
     const visitorFn = async (count, node) => {
       result.push(node.name)
-      if (count === 100) {
-        return null // interrupts after visiting 101 nodes
-      }
       return node.children
     }
-    const crawler = createCrawler(visitorFn)
+    const crawler = createCrawler({ maxVisits: 100, visitorFn })
     await crawler.crawl(tree)
-    expect(result.length).toEqual(101)
-    expect(crawler.getVisitCount()).toEqual(101)
+    expect(result.length).toEqual(100)
+    expect(crawler.getVisitCount()).toEqual(100)
   })
 
-  test('visitorFn should keep track of what it has already visited', async () => {
+  it('Can avoid infinite loops if visitorFn keeps track of what it has already visited', async () => {
     expect.assertions(2)
     const result = []
     const visited = new Set()
@@ -117,9 +137,9 @@ describe('Cyclic graph', () => {
       // returns only unvisited children
       return node.children.filter((child) => !visited.has(child))
     }
-    const crawler = createCrawler(visitorFn)
+    const crawler = createCrawler({ visitorFn })
     await crawler.crawl(tree)
-    expect(result).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
-    expect(crawler.getVisitCount()).toEqual(6)
+    expect(result).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+    expect(crawler.getVisitCount()).toEqual(7)
   })
 })
