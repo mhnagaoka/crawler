@@ -5,13 +5,8 @@ const { URL } = url
 const scrape = require('./scraper')
 
 const createPageVisitor = (mongodbClient) => {
-  const visited = new Set()
   const pageVisitor = async (count, node) => {
     const current = url.format(new URL(node), { fragment: false })
-    // We've been here before. Abort.
-    if (visited.has(current)) {
-      return []
-    }
     let response
     let error
     let title
@@ -35,12 +30,8 @@ const createPageVisitor = (mongodbClient) => {
         const absoluteLink = url.format(new URL(link, current), {
           fragment: false,
         })
-        // Ignore links already visited and non-page links
-        if (
-          visited.has(absoluteLink) ||
-          current === absoluteLink ||
-          !absoluteLink.startsWith('http')
-        ) {
+        // Ignore links to itself and non-page links
+        if (current === absoluteLink || !absoluteLink.startsWith('http')) {
           return sum
         }
         // Add to the resulting array
@@ -71,7 +62,6 @@ const createPageVisitor = (mongodbClient) => {
       .collection('pages')
       .updateOne({ _id }, { $set: document }, { upsert: true })
 
-    visited.add(current)
     if (response) {
       console.log(
         `count=${count} url=${current} title=${title} status=${response.status} ${response.statusText}`,
