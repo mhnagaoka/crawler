@@ -121,21 +121,19 @@ describe('Cyclic graph (beware of infinite loops!)', () => {
       result.push(node.name)
       return node.children
     }
-    const crawler = createCrawler({ maxVisits: 100, visitorFn })
+    const crawler = createCrawler({ maxVisits: 5, visitorFn })
     await crawler.crawl(tree)
-    expect(result.length).toEqual(100)
-    expect(crawler.getVisitCount()).toEqual(100)
+    expect(result.length).toEqual(5)
+    expect(crawler.getVisitCount()).toEqual(5)
   })
 
-  it('Can avoid infinite loops if visitorFn keeps track of what it has already visited', async () => {
+  it('Can avoid infinite loops by keeping track of what it has already visited', async () => {
     expect.assertions(2)
     const result = []
-    const visited = new Set()
     const visitorFn = async (count, node) => {
-      visited.add(node)
       result.push(node.name)
       // returns only unvisited children
-      return node.children.filter((child) => !visited.has(child))
+      return node.children
     }
     const crawler = createCrawler({ visitorFn })
     await crawler.crawl(tree)

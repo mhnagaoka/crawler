@@ -1,17 +1,20 @@
 const createCrawler = ({ maxVisits = null, visitorFn }) => {
-  let visitCount = 0
+  const visited = new Set()
   const crawl = async (initial) => {
     const nodeBacklog = [initial]
     while (nodeBacklog.length > 0) {
       const node = nodeBacklog.shift() // shift: breadth-first, pop: depth-first
+      if (visited.has(node)) {
+        continue // we've been here already
+      }
       // we could improve performance calling more visitors concurrently
-      const nextNodes = await visitorFn(visitCount, node)
-      visitCount++
+      const nextNodes = await visitorFn(visited.size, node)
+      visited.add(node)
       if (nextNodes === null) {
         break
       }
       if (maxVisits !== null) {
-        const pendingVisits = maxVisits - visitCount - nodeBacklog.length
+        const pendingVisits = maxVisits - visited.size - nodeBacklog.length
         pendingVisits > 0 &&
           nodeBacklog.push(...nextNodes.slice(0, pendingVisits))
       } else {
@@ -20,7 +23,7 @@ const createCrawler = ({ maxVisits = null, visitorFn }) => {
     }
   }
   const getVisitCount = () => {
-    return visitCount
+    return visited.size
   }
   return {
     crawl,
