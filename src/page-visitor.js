@@ -1,9 +1,10 @@
 const axios = require('axios').default
+const crypto = require('crypto')
 const url = require('url')
 const { URL } = url
-const scrapeLinks = require('./scraper')
+const scrape = require('./scraper')
 
-const createPageVisitor = () => {
+const createPageVisitor = (mongodbClient) => {
   const visited = new Set()
   const pageVisitor = async (count, node) => {
     const current = url.format(new URL(node), { fragment: false })
@@ -13,6 +14,7 @@ const createPageVisitor = () => {
     }
     let response
     let error
+    let title
     const scrapedLinks = []
     try {
       // Fetch page contents, scrape links
@@ -20,7 +22,9 @@ const createPageVisitor = () => {
         responseType: 'text',
       })
       error = null
-      scrapedLinks.push(...scrapeLinks(response.data))
+      const scraped = scrape(response.data)
+      title = scraped.title
+      scrapedLinks.push(...scraped.links)
     } catch (err) {
       response = null
       error = err
@@ -48,11 +52,30 @@ const createPageVisitor = () => {
     }, [])
     // Dedupe
     const uniqueLinks = [...new Set(absoluteLinks)]
-    // TODO persist url, uniqueLinks
+
+    // persist url, uniqueLinks
+    const db = mongodbClient.db('crawler')
+    // each page is identified by its url (we're using md5 here to keep it reasonably small)
+    const _id = crypto.createHash('md5').update(current).digest('hex')
+    const document = {
+      url: current,
+      title,
+      status: response ? response.status : null,
+      statusText: response ? response.statusText : null,
+      error: error ? error.message : null,
+      links: uniqueLinks,
+      linkCount: uniqueLinks.length,
+      updatedAt: new Date(),
+    }
+    await db
+      .collection('pages')
+      .updateOne({ _id }, { $set: document }, { upsert: true })
+
     visited.add(current)
     if (response) {
       console.log(
-        `count=${count} url=${current} status=${response.status} ${response.statusText} length=${response.headers['content-length']} totalLinks=${scrapedLinks.length} uniqueLinks=${uniqueLinks.length}`
+        `count=${count} url=${current} title=${title} status=${response.status} ${response.statusText}`,
+        `length=${response.headers['content-length']} totalLinks=${scrapedLinks.length} uniqueLinks=${uniqueLinks.length}`
       )
     } else {
       console.error(`count=${count} url=${current} error=${error.message}`)

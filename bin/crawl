@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 'use strict'
 
+process.on('unhandledRejection', (error) => {
+  // Will print "unhandledRejection err is not defined"
+  console.error(error.stack)
+  process.exit(1)
+})
+
 const meow = require('meow')
+const { MongoClient } = require('mongodb')
 const createCrawler = require('../src/crawler')
 const createPageVisitor = require('../src/page-visitor')
 
@@ -34,9 +41,28 @@ if (cli.input.length < 1) {
   cli.showHelp()
 }
 
-cli.input.forEach((initialUrl) => {
-  const maxVisits = cli.flags.maxVisits
-  const visitorFn = createPageVisitor()
-  const crawler = createCrawler({ maxVisits, visitorFn })
-  crawler.crawl(initialUrl)
-})
+async function main() {
+  let mongodbClient = null
+  try {
+    const mongodbUrl = process.env.MONGODB_URL
+    mongodbClient = await MongoClient.connect(mongodbUrl, {
+      poolSize: 1,
+      useUnifiedTopology: true,
+    })
+
+    await Promise.all(
+      cli.input.map((initialUrl) => {
+        const maxVisits = cli.flags.maxVisits
+        const visitorFn = createPageVisitor(mongodbClient)
+        const crawler = createCrawler({ maxVisits, visitorFn })
+        return crawler.crawl(initialUrl)
+      })
+    )
+  } finally {
+    if (mongodbClient) {
+      await mongodbClient.close()
+    }
+  }
+}
+
+main()

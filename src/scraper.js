@@ -1,13 +1,14 @@
 const cheerio = require('cheerio')
 
-const scrapeLinks = (html) => {
+const scrape = (html) => {
   const $ = cheerio.load(html)
-  const result = []
+  const title = $('head title').text()
+  const links = []
   // for the sake of simplicity, we're considering only html anchors
   $('a[href]').each((_, elem) => {
-    result.push($(elem).attr('href'))
+    links.push($(elem).attr('href'))
   })
-  return result
+  return { title, links }
 }
 
-module.exports = scrapeLinks
+module.exports = scrape
