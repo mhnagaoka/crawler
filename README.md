@@ -2,8 +2,8 @@
 
 It comprises of two main modules:
 
-- a REST API server that shows the web page information stored in the database
-- a CLI crawler used to crawl web pages and populate the database and .
+- a REST API server that shows the web page information stored in the database;
+- a CLI crawler used to crawl web pages and populate the database.
 
 ## Building and Running with Docker
 
