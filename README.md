@@ -46,6 +46,14 @@ crawler bin/crawl --maxVisits 100 https://www.crawler-test.com/
 
 You need at Node.js version 12 or above (it will probably work on other versions with proper [async/await support](https://node.green/#ES2017-features-async-functions)).
 
+Create a `.env` file containing the MONGODB_URL variable.
+
+_You need to adjust the MongoDB connection string according to your server._
+
+```shell
+$ echo MONGODB_URL="mongodb+srv://<user>:<password>@<host>/<db>?retryWrites=true&w=majority" > .env
+```
+
 Install dependencies.
 
 ```shell
