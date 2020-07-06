@@ -19,7 +19,7 @@ const cli = meow(
   Options
     --help            show usage information
     --version         prints the version number
-	  --maxVisits, -mv  maximum number of pages to crawl (default is 10)
+    --maxVisits, -mv  maximum number of pages to crawl (default is 10)
 
 	Examples
 	  $ crawl https://www.crawler-test.com/
