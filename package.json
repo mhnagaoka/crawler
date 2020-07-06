@@ -19,6 +19,7 @@
     "format:fix": "prettier --loglevel warn --write \"**/*.{js,css,md,json}\"",
     "lint:check": "eslint --cache",
     "lint:fix": "eslint --cache --fix",
+    "start": "nodemon -r dotenv/config --inspect src/server.js",
     "pretest": "npm run lint:check",
     "test": "jest",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
@@ -28,8 +29,11 @@
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
     "meow": "^7.0.1",
-    "mongodb": "^3.5.9"
+    "mongodb": "^3.5.9",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "dotenv": "^8.2.0",
@@ -39,6 +43,7 @@
     "husky": "^4.2.5",
     "jest": "^26.1.0",
     "lint-staged": "^10.2.11",
+    "nodemon": "^2.0.4",
     "prettier": "^2.0.5"
   },
   "husky": {
